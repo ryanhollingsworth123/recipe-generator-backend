@@ -24,16 +24,19 @@ app.post("/api/recipe", async (req, res) => {
   try {
     const prompt = `Create a detailed recipe using these ingredients: ${ingredients}`;
 
-    // Changed model to GPT-2
+    // Use DeepSeek-R1 model
     const result = await client.textGeneration({
-      model: "gpt2", // ✅ small hosted model with free inference
+      model: "deepseek-ai/DeepSeek-R1",
       inputs: prompt,
-      parameters: {
-        max_new_tokens: 250,
-      },
+      options: { wait_for_model: true }, // ensure model is ready
+      parameters: { max_new_tokens: 250 },
     });
 
-    const recipe = result.generated_text || "No recipe generated. Check server logs.";
+    // The Hugging Face client returns an array
+    const recipe =
+      Array.isArray(result) && result[0]?.generated_text
+        ? result[0].generated_text
+        : "No recipe generated. Check server logs.";
 
     res.json({ recipe });
   } catch (error) {
