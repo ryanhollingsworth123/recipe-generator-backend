@@ -15,7 +15,7 @@ app.post("/api/recipe", async (req, res) => {
   const { ingredients } = req.body;
 
   try {
-    const response = await fetch("https://api-inference.huggingface.co/models/Shulgin123/tensorblock/dut-recipe-generator-GGUF", {
+    const response = await fetch("https://api-inference.huggingface.co/models/Shulgin123/google/flan-t5-small", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.HF_API_KEY}`,
@@ -38,3 +38,4 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
