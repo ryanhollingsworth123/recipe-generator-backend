@@ -11,6 +11,6 @@
   "cors": "^2.8.5",
   "dotenv": "^17.2.3",
   "node-fetch": "^3.3.2",
-  "@huggingface/inference": "^0.0.27"
+  "@huggingface/inference": "^2.6.0"
 }
 }
