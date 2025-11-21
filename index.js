@@ -1,67 +1,45 @@
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch";
 import dotenv from "dotenv";
+import OpenAI from "openai";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const client = new OpenAI({
+  apiKey: process.env.HF_API_KEY,
+  baseUrl: "https://router.huggingface.co/v1",
+});
+
 app.use(cors());
 app.use(express.json());
 
 app.post("/api/recipe", async (req, res) => {
   const { ingredients } = req.body;
-
-  if (!ingredients) {
-    return res.status(400).json({ recipe: "Please provide ingredients." });
-  }
+  if (!ingredients) return res.status(400).json({ recipe: "Provide ingredients." });
 
   try {
-    const response = await fetch(
-      "https://router.huggingface.co/api/models/Shulgin123/deepseek-ai/DeepSeek-R1",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.HF_API_KEY}`,
-          "Content-Type": "application/json",
+    const completion = await client.chat.completions.create({
+      model: "deepseek-ai/DeepSeek-R1:novita",
+      messages: [
+        {
+          role: "user",
+          content: `Create a detailed recipe using these ingredients: ${ingredients}`,
         },
-        body: JSON.stringify({
-          inputs: `Create a detailed recipe using these ingredients: ${ingredients}`,
-          options: { wait_for_model: true },
-        }),
-      }
-    );
-    
-    // Read body only once
-    const text = await response.text();
-    
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (err) {
-      console.error("HF response was not JSON:", text);
-      return res.status(500).json({ recipe: "Error: HF router response invalid." });
-    }
-    
-    console.log("HF response:", JSON.stringify(data, null, 2));
-    
-    const recipe =
-      Array.isArray(data) && data[0]?.generated_text
-        ? data[0].generated_text
-        : "No recipe generated. Check server logs.";
-    
+      ],
+    });
+
+    const recipe = completion.choices[0].message.content;
     res.json({ recipe });
-  } catch (error) {
-    console.error("Error generating recipe:", error);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ recipe: "Error generating recipe." });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
 
