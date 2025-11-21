@@ -24,18 +24,19 @@ app.post("/api/recipe", async (req, res) => {
   try {
     const prompt = `Create a detailed recipe using these ingredients: ${ingredients}`;
 
-    // Use DeepSeek-R1 model
-    const result = await client.textGeneration({
+    // Use chat API instead of textGeneration for DeepSeek-R1
+    const result = await client.chat({
       model: "deepseek-ai/DeepSeek-R1",
-      inputs: prompt,
-      options: { wait_for_model: true }, // ensure model is ready
-      parameters: { max_new_tokens: 250 },
+      messages: [
+        { role: "user", content: prompt }
+      ],
+      options: { wait_for_model: true },
     });
 
-    // The Hugging Face client returns an array
+    // Extract the recipe from response
     const recipe =
-      Array.isArray(result) && result[0]?.generated_text
-        ? result[0].generated_text
+      Array.isArray(result?.choices) && result.choices[0]?.message?.content
+        ? result.choices[0].message.content
         : "No recipe generated. Check server logs.";
 
     res.json({ recipe });
@@ -48,6 +49,7 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
