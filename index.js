@@ -33,25 +33,25 @@ app.post("/api/recipe", async (req, res) => {
         }),
       }
     );
-
+    
+    // Read body only once
+    const text = await response.text();
+    
     let data;
     try {
-      data = await response.json();
+      data = JSON.parse(text);
     } catch (err) {
-      const text = await response.text();
       console.error("HF response was not JSON:", text);
-      return res
-        .status(500)
-        .json({ recipe: "Error: HF router response invalid." });
+      return res.status(500).json({ recipe: "Error: HF router response invalid." });
     }
-
+    
     console.log("HF response:", JSON.stringify(data, null, 2));
-
+    
     const recipe =
       Array.isArray(data) && data[0]?.generated_text
         ? data[0].generated_text
         : "No recipe generated. Check server logs.";
-
+    
     res.json({ recipe });
   } catch (error) {
     console.error("Error generating recipe:", error);
@@ -62,6 +62,7 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
