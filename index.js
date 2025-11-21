@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import fetch from "node-fetch";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -21,9 +21,9 @@ app.post("/api/recipe", async (req, res) => {
   try {
     const prompt = `Create a detailed recipe using these ingredients: ${ingredients}`;
 
-    // Call the Hugging Face Router API for DeepSeek-R1 (conversational)
+    // DeepSeek-R1 is a conversational model
     const response = await fetch(
-      "https://router.huggingface.co/api/models/deepseek-ai/DeepSeek-R1",
+      "https://api-inference.huggingface.co/v1/models/deepseek-ai/DeepSeek-R1",
       {
         method: "POST",
         headers: {
@@ -31,16 +31,32 @@ app.post("/api/recipe", async (req, res) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: prompt,
+          inputs: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
           options: { wait_for_model: true },
         }),
       }
     );
 
-    // Read and parse response
-    const data = await response.json();
+    const text = await response.text();
 
-    // DeepSeek-R1 returns an array of objects with 'generated_text'
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error("HF response was not JSON:", text);
+      return res
+        .status(500)
+        .json({ recipe: "Error: HF router response invalid." });
+    }
+
+    console.log("HF response:", JSON.stringify(data, null, 2));
+
+    // Extract generated text
     const recipe =
       Array.isArray(data) && data[0]?.generated_text
         ? data[0].generated_text
@@ -56,6 +72,7 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
