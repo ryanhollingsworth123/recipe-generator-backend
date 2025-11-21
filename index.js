@@ -25,26 +25,26 @@ app.post("/api/recipe", async (req, res) => {
   }
 
   try {
-    const response = await fetch(
-      "https://router.huggingface.co/models/google/flan-t5-small",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.HF_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: `Create a detailed, step-by-step recipe using these ingredients: ${ingredients}`,
-          options: { wait_for_model: true }
-        }),
-      }
-    );
+    const response = await fetch("https://router.huggingface.co/models/google/flan-t5-small", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.HF_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: `Create a detailed, step-by-step recipe using these ingredients: ${ingredients}`,
+        options: { wait_for_model: true }
+      }),
+    });
+    
+    // Clone response for logging
+    const responseClone = response.clone();
     
     let data;
     try {
       data = await response.json();
     } catch (err) {
-      const text = await response.text();
+      const text = await responseClone.text(); // read the clone, original untouched
       console.error("Response was not JSON:", text);
       return res.status(500).json({ recipe: "Error: HF router response invalid" });
     }
@@ -65,6 +65,7 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
