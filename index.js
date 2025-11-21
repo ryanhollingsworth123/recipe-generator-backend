@@ -21,37 +21,42 @@ app.post("/api/recipe", async (req, res) => {
   try {
     const prompt = `Create a detailed recipe using these ingredients: ${ingredients}`;
 
-    // Replace this with your chosen model URL
-    const modelUrl = "https://huggingface.co/Scottie201/trained_text_generation?inference_provider=featherless-ai";
-
-    const response = await fetch(modelUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.HF_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ inputs: prompt, options: { wait_for_model: true } }),
-    });
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/Scottie201/trained_text_generation",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.HF_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          options: { wait_for_model: true },
+        }),
+      }
+    );
 
     const text = await response.text();
 
-    let result;
+    // Log everything for debugging
+    console.log("HF response status:", response.status);
+    console.log("HF response text:", text);
+
+    let data;
     try {
-      result = JSON.parse(text);
-    } catch {
-      console.warn("HF response was not JSON:", text);
-      return res.status(500).json({ recipe: "HF returned non-JSON response. Check server logs." });
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error("HF response was not JSON:", text);
+      return res.status(500).json({
+        recipe:
+          "Error: HF router response invalid. Check server logs for details.",
+      });
     }
 
-    console.log("Raw HF response:", JSON.stringify(result, null, 2));
-
-    // Safely extract text from common HF response formats
     const recipe =
-      result.generated_text ||
-      result[0]?.generated_text ||
-      result[0]?.text ||
-      result.choices?.[0]?.text ||
-      "No recipe generated. Check server logs.";
+      Array.isArray(data) && data[0]?.generated_text
+        ? data[0].generated_text
+        : "No recipe generated. Check server logs.";
 
     res.json({ recipe });
   } catch (error) {
@@ -63,6 +68,7 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
