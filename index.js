@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch";
 import dotenv from "dotenv";
+import fetch from "node-fetch";
 
 dotenv.config();
 
@@ -21,40 +21,27 @@ app.post("/api/recipe", async (req, res) => {
   try {
     const prompt = `Create a detailed recipe using these ingredients: ${ingredients}`;
 
-    // Use the Hugging Face router URL
-    const response = await fetch(
-      "https://router.huggingface.co/api/models/deepseek-ai/DeepSeek-R1",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.HF_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          options: { wait_for_model: true },
-        }),
-      }
-    );
+    const response = await fetch("https://router.huggingface.co/models/tiiuae/falcon-7b-instruct", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.HF_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: { max_new_tokens: 250 },
+      }),
+    });
 
-    const text = await response.text();
+    const text = await response.text(); // Read as text first
 
     let data;
     try {
-      data = JSON.parse(text);
+      data = JSON.parse(text); // Only parse if valid JSON
     } catch (err) {
       console.error("HF response was not JSON:", text);
-      return res
-        .status(500)
-        .json({ recipe: "Error: HF router response invalid." });
+      return res.status(500).json({ recipe: "Error: HF response invalid." });
     }
-
-    console.log("HF response:", JSON.stringify(data, null, 2));
 
     const recipe =
       Array.isArray(data) && data[0]?.generated_text
@@ -71,6 +58,7 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
