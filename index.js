@@ -8,14 +8,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Optional: security & caching headers
 app.use((req, res, next) => {
-  res.setHeader("Cache-Control", "no-store"); // avoid caching
-  res.setHeader("X-Content-Type-Options", "nosniff"); // security
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
   next();
 });
 
@@ -28,7 +26,7 @@ app.post("/api/recipe", async (req, res) => {
 
   try {
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/google/flan-t5-small",
+      "https://router.huggingface.co/models/google/flan-t5-small",
       {
         method: "POST",
         headers: {
@@ -43,10 +41,8 @@ app.post("/api/recipe", async (req, res) => {
 
     const data = await response.json();
 
-    // Log the full HF response for debugging
-    console.log("Hugging Face response:", JSON.stringify(data, null, 2));
+    console.log("Hugging Face router response:", JSON.stringify(data, null, 2));
 
-    // Flan-T5 returns: [{ generated_text: "..." }]
     const recipe = Array.isArray(data) && data[0]?.generated_text
       ? data[0].generated_text
       : "No recipe generated. Check server logs for details.";
