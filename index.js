@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import fetch from "node-fetch";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -13,6 +13,7 @@ app.use(express.json());
 
 app.post("/api/recipe", async (req, res) => {
   const { ingredients } = req.body;
+
   if (!ingredients) {
     return res.status(400).json({ recipe: "Please provide ingredients." });
   }
@@ -20,38 +21,41 @@ app.post("/api/recipe", async (req, res) => {
   try {
     const prompt = `Create a detailed recipe using these ingredients: ${ingredients}`;
 
-    // Call via router + provider
-    const response = await fetch(
-      "https://router.huggingface.co/featherless-ai/v1/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.HF_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "Scottie201/trained_text_generation:featherless-ai",
-          inputs: prompt,
-          parameters: { max_new_tokens: 200 },
-        }),
-      }
-    );
+    // Replace this with your chosen model URL
+    const modelUrl = "https://huggingface.co/Scottie201/trained_text_generation?inference_provider=featherless-ai";
+
+    const response = await fetch(modelUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.HF_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ inputs: prompt, options: { wait_for_model: true } }),
+    });
 
     const text = await response.text();
-    let data;
+
+    let result;
     try {
-      data = JSON.parse(text);
-    } catch (err) {
-      console.error("Featherless response was not JSON:", text);
-      return res.status(500).json({ recipe: "Error: invalid response from provider." });
+      result = JSON.parse(text);
+    } catch {
+      console.warn("HF response was not JSON:", text);
+      return res.status(500).json({ recipe: "HF returned non-JSON response. Check server logs." });
     }
 
+    console.log("Raw HF response:", JSON.stringify(result, null, 2));
+
+    // Safely extract text from common HF response formats
     const recipe =
-      data?.choices?.[0]?.text || data?.generated_text || "No recipe generated.";
+      result.generated_text ||
+      result[0]?.generated_text ||
+      result[0]?.text ||
+      result.choices?.[0]?.text ||
+      "No recipe generated. Check server logs.";
 
     res.json({ recipe });
-  } catch (err) {
-    console.error("Error generating recipe:", err);
+  } catch (error) {
+    console.error("Error generating recipe:", error);
     res.status(500).json({ recipe: "Error generating recipe." });
   }
 });
