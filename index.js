@@ -21,9 +21,9 @@ app.post("/api/recipe", async (req, res) => {
   try {
     const prompt = `Create a detailed recipe using these ingredients: ${ingredients}`;
 
-    // DeepSeek-R1 is a conversational model
+    // Use the Hugging Face router URL
     const response = await fetch(
-      "https://api-inference.huggingface.co/v1/models/deepseek-ai/DeepSeek-R1",
+      "https://router.huggingface.co/api/models/deepseek-ai/DeepSeek-R1",
       {
         method: "POST",
         headers: {
@@ -56,7 +56,6 @@ app.post("/api/recipe", async (req, res) => {
 
     console.log("HF response:", JSON.stringify(data, null, 2));
 
-    // Extract generated text
     const recipe =
       Array.isArray(data) && data[0]?.generated_text
         ? data[0].generated_text
@@ -72,7 +71,6 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
 
 
 
