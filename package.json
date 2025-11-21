@@ -3,11 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "homepage": "https://ryanhollingsworth123.github.io/recipe-generator-backend",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
@@ -18,8 +15,5 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2"
-  },
-  "devDependencies": {
-    "gh-pages": "^6.3.0"
   }
 }
