@@ -20,7 +20,7 @@ app.post("/api/recipe", async (req, res) => {
 
   try {
     const response = await fetch(
-      "https://router.huggingface.co/api/models/Shulgin123/DeepSeek-R1",
+      "https://router.huggingface.co/api/models/Shulgin123/deepseek-ai/DeepSeek-R1",
       {
         method: "POST",
         headers: {
@@ -62,6 +62,7 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
