@@ -18,24 +18,21 @@ const client = new OpenAI({
 
 app.post("/api/recipe", async (req, res) => {
   const { ingredients } = req.body;
+  console.log("Received ingredients:", ingredients); // debug
 
   try {
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        {
-          role: "user",
-          content: `Create a recipe using the following ingredients: ${ingredients}. 
-                     Format it with a title, ingredients list, and step-by-step instructions.`
-        }
-      ]
+        { role: "user", content: `Create a recipe using these ingredients: ${ingredients}` }
+      ],
     });
 
     const recipe = completion.choices[0].message.content;
-
+    console.log("OpenAI response:", recipe); // debug
     res.json({ recipe });
   } catch (error) {
-    console.error("OpenAI API error:", error);
+    console.error("OpenAI Error:", error); // <--- log the real error
     res.status(500).json({ recipe: "Error generating recipe" });
   }
 });
@@ -43,6 +40,7 @@ app.post("/api/recipe", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
